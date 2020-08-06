@@ -38,7 +38,7 @@ identifier c cs = let (name, cs') = span isAlphaNum cs in
 
 number :: Char -> String -> [Token]
 number c cs = 
-   let (digs, cs') = span isDigit cs in
+   let (digs, cs') = span (\x -> (isDigit x || x=='.')) cs in
    TokNum (read (c : digs)) : tokenize cs'
 
 ---- parser ----
@@ -75,8 +75,11 @@ expression toks =
    in
       case lookAhead toks' of
          (TokOp op) | elem op [Plus, Minus] -> 
-            let (exTree, toks'') = expression (accept toks') 
-            in (SumNode op termTree exTree, toks'')
+             let (term' , toks'') = term (accept toks')
+              in case lookAhead toks'' of
+                  TokOp op' | elem op' [Plus, Minus] -> let (tree'' , toks''') = expression (accept toks'')
+                                                         in ((SumNode op' (SumNode op termTree term') tree''), toks''')
+                  _ -> (SumNode op termTree term', toks'')
          TokAssign ->
             case termTree of
                VarNode str -> 
@@ -84,7 +87,6 @@ expression toks =
                   in (AssignNode str exTree, toks'')
                _ -> error "Only variables can be assigned to"
          _ -> (termTree, toks')
-
 
 {-
    Term has the following grammar
