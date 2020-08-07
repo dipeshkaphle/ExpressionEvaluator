@@ -83,10 +83,8 @@ factor toks =
       (TokOp op) | elem op [Plus, Minus] -> 
             let (facTree, toks') = factor (accept toks) 
             in (UnaryNode op facTree, toks')
-      (TokTrig func paramToken) -> let (paramTree , remainingToks) = expression [paramToken] -- had to make it a list because expression func takes only that. Very little chance for error here though but still its caught just in case
-                                    in
-                                    if not (null remainingToks) then error $ "Problem in parsing tokens after trignometric function " ++ show func
-                                                          else (TrigNode func (paramTree) , accept toks)
+      (TokTrig func) -> let (exprTree ,toks') = factor (accept toks) 
+                                    in (TrigNode func exprTree, toks')
       TokLParen      -> 
          let (expTree, toks') = expression (accept toks)
          in

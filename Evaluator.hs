@@ -19,6 +19,7 @@ lookUp str symTab = case M.lookup str symTab of
 
 -------------------
 
+-- helper function for evaluating trig functions
 getTrigVal :: String -> String -> Double
 getTrigVal func rads  = case func of
     "Sin" -> sin (read rads)
@@ -26,6 +27,7 @@ getTrigVal func rads  = case func of
     "Tan" -> tan (read rads)
 
     --Evaluator part
+    -- Almost all function implementations are trivial
 evaluate :: Tree -> SymTable ->(Double,SymTable)
 evaluate (SumNode op left right) symTab = 
     let (leftExpr,symTab') = evaluate left symTab
