@@ -1,52 +1,12 @@
-module LexAndParse where
-import Data.Char
-
-data Operator = Plus | Minus | Times | Div | Mod
-    deriving (Show, Eq)
-
-data Token = TokOp Operator
-           | TokAssign
-           | TokLParen
-           | TokRParen
-           | TokIdent String
-           | TokNum Double
-           | TokEnd
-    deriving (Show, Eq)
-
-operator :: Char -> Operator
-operator c | c == '+' = Plus
-           | c == '-' = Minus
-           | c == '*' = Times
-           | c == '/' = Div
-           | c == '%' = Mod
- 
-tokenize :: String -> [Token]
-tokenize [] = []
-tokenize (c : cs) 
-    | elem c "+-*/%" = TokOp (operator c) : tokenize cs
-    | c == '='  = TokAssign : tokenize cs
-    | c == '('  = TokLParen : tokenize cs
-    | c == ')'  = TokRParen : tokenize cs
-    | isDigit c = number c cs
-    | isAlpha c = identifier c cs
-    | isSpace c = tokenize cs
-    | otherwise = error $ "Cannot tokenize " ++ [c]
-
-identifier :: Char -> String -> [Token]
-identifier c cs = let (name, cs') = span isAlphaNum cs in
-                  TokIdent (c:name) : tokenize cs'
-
-number :: Char -> String -> [Token]
-number c cs = 
-   let (digs, cs') = span (\x -> (isDigit x || x=='.')) cs in
-   TokNum (read (c : digs)) : tokenize cs'
-
+module Parser where
+import Lexer
 ---- parser ----
 
 data Tree = SumNode Operator Tree Tree
           | ProdNode Operator Tree Tree
           | AssignNode String Tree
           | UnaryNode Operator Tree
+          | TrigNode Trig Tree
           | NumNode Double
           | VarNode String
     deriving Show
@@ -111,7 +71,7 @@ term toks =
                  | TokIdent str (i.e an identifier as in variable name)
                  | unaryOperation Factor (i.e something like -x , -2 , -(x+y) . The unary operation can only be + or - ofc)
                  | '(' expression ')' (i.e an expression enclosed inside parentheses)
-
+                 |  TrigNode Trig Tree (something like TrigNode Sin (NumNode 10))
     -}
 
 
@@ -123,6 +83,10 @@ factor toks =
       (TokOp op) | elem op [Plus, Minus] -> 
             let (facTree, toks') = factor (accept toks) 
             in (UnaryNode op facTree, toks')
+      (TokTrig func paramToken) -> let (paramTree , remainingToks) = expression [paramToken] -- had to make it a list because expression func takes only that. Very little chance for error here though but still its caught just in case
+                                    in
+                                    if not (null remainingToks) then error $ "Problem in parsing tokens after trignometric function " ++ show func
+                                                          else (TrigNode func (paramTree) , accept toks)
       TokLParen      -> 
          let (expTree, toks') = expression (accept toks)
          in
@@ -139,4 +103,3 @@ parse toks = let (tree, toks') = expression toks
                if null toks' 
                then tree
                else error $ "Leftover tokens: " ++ show toks'
-

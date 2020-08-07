@@ -1,5 +1,6 @@
 module Main where
-import LexAndParse
+import Lexer
+import Parser
 import Evaluator
 import qualified Data.Map as M
 

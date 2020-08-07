@@ -1,5 +1,6 @@
 module Evaluator where
-import LexAndParse
+import Lexer
+import Parser
 import qualified Data.Map as M
 
 -- Symbol Table Stuffs and helper functions
@@ -17,6 +18,13 @@ lookUp str symTab = case M.lookup str symTab of
 -------------------
 
 -------------------
+
+getTrigVal :: String -> String -> Double
+getTrigVal func rads  = case func of
+    "Sin" -> sin (read rads)
+    "Cos" -> cos (read rads)
+    "Tan" -> tan (read rads)
+
     --Evaluator part
 evaluate :: Tree -> SymTable ->(Double,SymTable)
 evaluate (SumNode op left right) symTab = 
@@ -39,6 +47,11 @@ evaluate (UnaryNode op tree) symTab =
      in case op of
          Plus -> (x,symTab')
          Minus -> (-x,symTab')
+
+evaluate (TrigNode trigFunc exprTree) symTab =
+    let (x , symTab') = evaluate exprTree symTab
+     in ( getTrigVal (show trigFunc) (show x) ,symTab')
+
 
 evaluate (NumNode number) symTab = (number,symTab)
 
