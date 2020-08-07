@@ -6,6 +6,8 @@ data Tree = SumNode Operator Tree Tree
           | ProdNode Operator Tree Tree
           | AssignNode String Tree
           | UnaryNode Operator Tree
+          | LnNode Tree
+          | LogNode Tree Tree
           | TrigNode Trig Tree
           | NumNode Double
           | VarNode String
@@ -60,7 +62,7 @@ term toks =
    let (facTree, toks') = factor toks
    in
       case lookAhead toks' of
-         (TokOp op) | elem op [Times, Div, Mod] ->
+         (TokOp op) | elem op [Times, Div, Mod , Pow] ->
             let (termTree, toks'') = term (accept toks') 
             in (ProdNode op facTree termTree, toks'')
          _ -> (facTree, toks')
@@ -72,6 +74,8 @@ term toks =
                  | unaryOperation Factor (i.e something like -x , -2 , -(x+y) . The unary operation can only be + or - ofc)
                  | '(' expression ')' (i.e an expression enclosed inside parentheses)
                  |  TrigNode Trig Tree (something like TrigNode Sin (NumNode 10))
+                 | log term term
+                 | ln term
     -}
 
 
@@ -83,7 +87,13 @@ factor toks =
       (TokOp op) | elem op [Plus, Minus] -> 
             let (facTree, toks') = factor (accept toks) 
             in (UnaryNode op facTree, toks')
-      (TokTrig func) -> let (exprTree ,toks') = factor (accept toks) 
+      (TokLog logType) -> case logType of
+          Log -> let (logbase,toks') =term (accept toks)
+                     (logOperand , toks'') = term toks'
+                  in (LogNode logbase logOperand, toks'')
+          Ln -> let (logOperand , toks') = term (accept toks)
+                 in (LnNode logOperand, toks')
+      (TokTrig func) -> let (exprTree ,toks') = term (accept toks) 
                                     in (TrigNode func exprTree, toks')
       TokLParen      -> 
          let (expTree, toks') = expression (accept toks)

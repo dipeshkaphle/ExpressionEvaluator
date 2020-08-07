@@ -43,6 +43,7 @@ evaluate (ProdNode op left right) symTab=
          Times -> (leftExpr * rightExpr , symTab'') 
          Div -> (leftExpr / rightExpr , symTab'')
          Mod -> (leftExpr - (fromIntegral $ truncate $ (leftExpr / rightExpr)) * rightExpr , symTab'')
+         Pow -> (leftExpr **  rightExpr , symTab'')
 
 evaluate (UnaryNode op tree) symTab =
     let (x,symTab') = evaluate tree symTab
@@ -53,6 +54,18 @@ evaluate (UnaryNode op tree) symTab =
 evaluate (TrigNode trigFunc exprTree) symTab =
     let (x , symTab') = evaluate exprTree symTab
      in ( getTrigVal (show trigFunc) (show x) ,symTab')
+
+evaluate (LogNode logbase operand) symTab = 
+    let (x,symTab') = evaluate logbase symTab
+        (x', symTab'') = evaluate operand symTab'
+     in (logBase x x', symTab'')
+
+
+evaluate (LnNode operand) symTab = 
+    let (x,symTab') = evaluate operand symTab
+     in (log x , symTab')
+
+
 
 
 evaluate (NumNode number) symTab = (number,symTab)
