@@ -2,14 +2,21 @@ module Parser where
 import Lexer
 ---- parser ----
 
+-- This is so not Haskell like
+-- The functions should really not be this long
+
 data Tree = SumNode Operator Tree Tree
           | ProdNode Operator Tree Tree
+          | CmpNode CompOps Tree Tree
+          | LogicalNodeBinary LogicalOps Tree Tree
+          | LogicalNodeUnary LogicalOps Tree
           | AssignNode String Tree
           | UnaryNode Operator Tree
           | LnNode Tree
           | LogNode Tree Tree
           | TrigNode Trig Tree
           | NumNode Double
+          | BoolNode Bool
           | VarNode String
     deriving Show
 
@@ -25,23 +32,48 @@ accept (t:ts) = ts
 
 {-
    Expression has a structure like this
-   Expression <- Term [-+] Expression
+   Expression <- Term [-+] Term (some op) expr
+                | Term [Logical or Cmp] Expr
                 | Term (identifier in this case ) = Expression
                 | Term
 
     Hence we parse in this particular order
 -}
+
+ -- This looks complicated because it fixes associativity problem for +-
+ ---- instead of normal term +- expr grammar we use term+-term+-expr  something else 
+
+  -- if something else doesnt exist  then we follow normal term +- expr grammar
+  --
+ -- this seems to generate correct  prefix expression
+ --
+ --
+ -- This is complicated. Im trying to make evaluation order python repl like
+ -- Like without nesting in the TokOp case we wont be able to parse things like 1+2<3 or 1+2 & 3
+ -- Always using parens is encouraged
+ -- The associativity and the order of evaluation can get kinda weird
+ -- I have tried my best to do this correctly with how much I know
+ -- Ill try to make this better 
 expression :: [Token] -> (Tree, [Token])
 expression toks = 
    let (termTree, toks') = term toks
    in
       case lookAhead toks' of
+         (TokLogicalBinary op) -> let (exprTree, toks'') =  expression (accept toks')
+                                    in (LogicalNodeBinary op termTree exprTree , toks'')
          (TokOp op) | elem op [Plus, Minus] -> 
-             let (term' , toks'') = term (accept toks')
-              in case lookAhead toks'' of
-                  TokOp op' | elem op' [Plus, Minus] -> let (tree'' , toks''') = expression (accept toks'')
-                                                         in ((SumNode op' (SumNode op termTree term') tree''), toks''')
+             let (term' , toks'') = term (accept toks') 
+              in case lookAhead toks'' of              
+                  TokOp op' | elem op' [Plus, Minus] -> let (tree'' , toks''') = expression (accept toks'')                                     
+                                                         in ((SumNode op' (SumNode op termTree term') tree''), toks''') 
+                  TokCmp op' -> let (tree'',toks''') = expression (accept toks'')
+                                 in ((CmpNode op' (SumNode op termTree term') tree'') , toks''')
+                  TokLogicalBinary op' -> let (tree'',toks''') = expression (accept toks'')
+                                          in ((LogicalNodeBinary op' (SumNode op termTree term') tree''), toks''')
                   _ -> (SumNode op termTree term', toks'')
+
+         (TokCmp op) -> let (exprTree , toks'') = expression (accept toks')
+                         in (CmpNode op termTree exprTree, toks'')
          TokAssign ->
             case termTree of
                VarNode str -> 
@@ -83,6 +115,7 @@ factor :: [Token] -> (Tree, [Token])
 factor toks = 
    case lookAhead toks of
       (TokNum x)     -> (NumNode x, accept toks)
+      (TokBool x)    -> (BoolNode x , accept toks)
       (TokIdent str) -> (VarNode str, accept toks)
       (TokOp op) | elem op [Plus, Minus] -> 
             let (facTree, toks') = factor (accept toks) 
@@ -101,6 +134,8 @@ factor toks =
             if lookAhead toks' /= TokRParen 
             then error "Missing right parenthesis"
             else (expTree, accept toks')
+      TokLogicalUnary op -> let (exprTree, toks')= expression (accept toks)
+                             in (LogicalNodeUnary op exprTree, toks')  -- op is always going to be Not in this case
       _ -> error $ "Parse error on token: " ++ show toks
 
 
