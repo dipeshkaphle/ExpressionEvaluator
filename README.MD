@@ -20,6 +20,38 @@
 ![Images](images/comparision.png)
 * Comparisions 
 
+## Operations
+* `+`
+* `-`
+* `*`
+* `/`
+* `%`  -> will do float mod
+* `^`  -> power
+* `&` -> Logical And
+* `|` -> Logical Or
+* `~` -> Logical Not
+* `-->` -> Logical Implies
+* `<-->` -> Logical Double Implies
+* `^^` -> Logical Xor
+* `<` 
+* `<=`
+* `>` 
+* `>=`
+* `==`
+* `!=`
+* `Sin`
+* `Cos`
+* `Tan`
+* `Log` followed by logbase and and number
+* `Ln` -> Natural Log
+
+
+## Note
++ You cant assign boolean values to variables 
++ The comparision operators on Boolean values do not work properly (Will be fixed soon)
+
+
+
 ## Requirements to run the program
 * `Glasgow Haskell Compiler` or `ghc` must be installed 
 
