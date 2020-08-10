@@ -6,9 +6,13 @@ import System.Environment
 import Prelude hiding (mod)
 import MaybeArithmeticOperators
 import LogicalOperators
+import System.IO
 
 main = do
-    loop (M.empty) (M.fromList [("pi",pi),("e",exp 1.0)])
+    str <- getArgs
+    if null str
+       then loop (M.empty) (M.fromList [("pi", pi), ("e",exp 1.0)])
+       else loop' (M.empty) (M.fromList [("pi",pi),("e",exp 1.0)])
 
 
 
@@ -19,8 +23,29 @@ getVal _ _ = putStrLn "Cant evaluate "
 
 
 
+processAndPrint str symB symD =
+        let toks = tokenize str
+            expressionTree = parse toks
+            (valB, valD , symB' , symD') = evaluate expressionTree symB symD
+         in do
+             getVal valB valD
+
+
+loop' symB symD = do
+    str <- getArgs
+    processAndPrint (str !! 0) symB symD
+    
+
+
+
+prompt text = do
+    putStr text
+    hFlush stdout
+    getLine
+
+
 loop symB symD = do
-    str <- getLine
+    str <- prompt ">>>> "
     if null str
        then return ()
        else
