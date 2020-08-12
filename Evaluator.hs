@@ -59,23 +59,34 @@ evaluate parseTree symB symD =
         AssignNode str valD -> applyFunc arithEval
 
 
+--helper function for compare
+
+
+compareAndReturn op a b = case op of
+    Equal -> Just (a == b)
+    NotEqual -> Just (a /= b)
+    LessThan -> Just (a < b)
+    LessOrEq -> Just (a <= b)
+    GrtrThan -> Just ( a > b)
+    GrtrOrEq -> Just (a >= b)
+
+
+
 
 -- Following are the evaluators for Logical Operations
 logicEval :: Tree -> SymTable Bool -> SymTable Double -> (Maybe Bool,Maybe Double,SymTable Bool , SymTable Double)
 logicEval (CmpNode op left right) symB symD=
     let (leftExprB,leftExprD,symB',symD') =  evaluate left symB symD
         (rightExprB,rightExprD,symB'',symD'') = evaluate right symB' symD'
-     in case op of
-         Equal -> (Just (leftExprD == rightExprD),Nothing , symB'',symD'')
-         NotEqual -> (Just (leftExprD /= rightExprD),Nothing , symB'',symD'')
-         LessThan -> (Just (leftExprD < rightExprD ), Nothing, symB'',symD'')
-         GrtrThan -> (Just (leftExprD > rightExprD), Nothing,symB'',symD'')
-         LessOrEq -> (Just (leftExprD <= rightExprD), Nothing , symB'',symD'')
-         GrtrOrEq -> (Just (leftExprD >= rightExprD), Nothing, symB'',symD'')
+        returnFunc a b = (compareAndReturn op a b , Nothing, symB'',symD'')
+     in case (leftExprB , leftExprD , rightExprB, rightExprD) of
+         (Just x , _ , Just y , _) -> returnFunc x y
+         (_ , Just x , _ , Just y) -> returnFunc x y
+         (_ , _ , _ , _)           -> (Nothing , Nothing , symB'' , symD'')
+
+
 
 logicEval (BoolNode a) symB symD = (Just a ,Nothing, symB,symD)
-
-
 
 logicEval (LogicalNodeBinary op left right) symB symD =
     let (leftExprB,leftExprD,symB',symD') = evaluate left symB symD
