@@ -22,6 +22,11 @@ addVar str val symTab =
 --addVar str val symTab = let symTab' = M.insert str val symTab
  --                        in ((),symTab')
 
+lookUp' str symB symD = 
+    let a = M.lookup str symB
+        b = M.lookup str symD
+     in (a , b )
+
 lookUp :: String -> SymTable a -> (a, SymTable a)
 lookUp str symTab = case M.lookup str symTab of 
     Just val -> (val,symTab)
@@ -175,12 +180,16 @@ arithEval (NumNode number) symB symD = (Nothing , Just number , symB, symD)
 
 arithEval (AssignNode str tree) symB symD =  
     let (xB,xD,symB',symD') = evaluate tree symB symD
-        (_ , symD'') = addVar str xD symD
-     in (Nothing , xD, symB' , symD'')
+        (_ , symD'') = addVar str xD symD'
+        (_ , symB'') = addVar str xB symB'
+     in (xB , xD, symB'' , symD'')
+
 
 arithEval (VarNode str) symB symD = 
-    let (x, symD') = lookUp str symD
-     in (Nothing , Just x , symB, symD')
-
+    let (a , b) = lookUp' str symB symD
+     in case (a,b) of
+         (Just x , _) -> (Just x , Nothing, symB,symD)
+         (_ , Just y) -> (Nothing ,Just y , symB, symD)
+         (_, _ )      -> (Nothing, Nothing, symB, symD)
 
 

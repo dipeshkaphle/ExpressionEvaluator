@@ -47,9 +47,23 @@
 
 
 ## Note
-+ You cant assign boolean values to variables 
-+ The comparision operators on Boolean values do not work properly (Will be fixed soon)
-
+* The comparision operator will give  `False` for `True < False` and `True` for otherway around. This is because it is defined like that in Haskell. 
+```
+>>> True < False
+False
+>>> True > False
+True
+>>> True == False
+False
+>>> True == True
+True
+```
+* if you assign different type of values to a variable as in
+```
+x=2
+x= True
+```
+In this case it will always be evaluated to the boolean value implying booleans values are checked first in the symbol table. Because of this , it is advised to preserve the initial type of the variable
 
 
 ## Requirements to run the program
