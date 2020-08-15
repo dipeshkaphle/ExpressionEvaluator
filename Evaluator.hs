@@ -124,7 +124,7 @@ arithEval (SumNode op left right) symB symD =
         (rightB, rightD , symB'',symD'') = evaluate right symB' symD'
         x = case op of
              Plus  ->  (leftD >>= (\y -> rightD >>= (\z -> add y z)))
-             Minus ->  (leftD >>= (\y -> rightD >>= (\z -> add y z)))
+             Minus ->  (leftD >>= (\y -> rightD >>= (\z -> minus y z)))
      in (Nothing , x ,symB'' , symD'')
 
 
