@@ -58,21 +58,12 @@ expression toks =
    let (termTree, toks') = term toks
    in
       case lookAhead toks' of
-         (TokLogicalBinary op) -> let (exprTree, toks'') =  expression (accept toks')
-                                    in (LogicalNodeBinary op termTree exprTree , toks'')
          (TokOp op) | elem op [Plus, Minus] -> 
              let (term' , toks'') = term (accept toks') 
               in case lookAhead toks'' of              
                   TokOp op' | elem op' [Plus, Minus] -> let (tree'' , toks''') = expression (toks'')                                     
                                                          in ((SumNode Plus (SumNode op termTree term') tree''), toks''') 
-                  TokCmp op' -> let (tree'',toks''') = expression (accept toks'')
-                                 in ((CmpNode op' (SumNode op termTree term') tree'') , toks''')
-                  TokLogicalBinary op' -> let (tree'',toks''') = expression (accept toks'')
-                                          in ((LogicalNodeBinary op' (SumNode op termTree term') tree''), toks''')
                   _ -> (SumNode op termTree term', toks'')
-
-         (TokCmp op) -> let (exprTree , toks'') = expression (accept toks')
-                         in (CmpNode op termTree exprTree, toks'')
          TokAssign ->
             case termTree of
                VarNode str -> 
@@ -80,6 +71,24 @@ expression toks =
                   in (AssignNode str exTree, toks'')
                _ -> error "Only variables can be assigned to"
          _ -> (termTree, toks')
+
+
+expression' toks =
+    let (exprTree, toks') = expression toks
+     in case lookAhead toks' of
+         (TokCmp op) -> let (expr'Tree , toks'') = expression' (accept toks')
+                         in (CmpNode op exprTree expr'Tree , toks'')
+         _ -> (exprTree, toks')
+
+
+expression'' toks = 
+    let (expr'Tree , toks') = expression' toks
+     in case lookAhead toks' of
+         (TokLogicalBinary op) -> let (expr''Tree , toks'') = expression'' (accept toks')
+                                   in (LogicalNodeBinary op expr'Tree expr''Tree , toks'')
+         _ -> (expr'Tree , toks')
+
+
 
 {-
    Term has the following grammar
@@ -140,7 +149,7 @@ factor toks =
 
 -- parses the parse tree from given tokens
 parse :: [Token] -> Tree
-parse toks = let (tree, toks') = expression toks
+parse toks = let (tree, toks') = expression'' toks
              in
                if null toks' 
                then tree
