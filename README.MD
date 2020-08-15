@@ -48,7 +48,7 @@
 
 ## Note
 
-* There is a problem with associativity of Arithmetic operators `+` and `-`. It is hence advised to parenthesize everything properly in those operations. I will try to come up with a fix soon.
+* There could still be a problem with associativity of Arithmetic operators `+` and `-`. It is hence advised to parenthesize everything properly in those operations. I have tried it with almost 8 operation long expression and it did match with python evaluation for the same expression. But I havent been able to prove it correctness formally so I would still advise using parens.
 * The comparision operator will give  `False` for `True < False` and `True` for otherway around. This is because it is defined like that in Haskell. 
 ```
 >>> True < False

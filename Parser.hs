@@ -29,7 +29,6 @@ accept [] = error "Nothing to accept"
 accept (t:ts) = ts
 
 
-
 {-
    Expression has a structure like this
    Expression <- Term [-+] Term (some op) expr
@@ -45,7 +44,7 @@ accept (t:ts) = ts
 
   -- if something else doesnt exist  then we follow normal term +- expr grammar
   --
- -- this seems to generate correct  prefix expression
+ -- this still doesnt seem to generate correct  prefix expression
  --
  --
  -- This is complicated. Im trying to make evaluation order python repl like
@@ -64,8 +63,8 @@ expression toks =
          (TokOp op) | elem op [Plus, Minus] -> 
              let (term' , toks'') = term (accept toks') 
               in case lookAhead toks'' of              
-                  TokOp op' | elem op' [Plus, Minus] -> let (tree'' , toks''') = expression (accept toks'')                                     
-                                                         in ((SumNode op' (SumNode op termTree term') tree''), toks''') 
+                  TokOp op' | elem op' [Plus, Minus] -> let (tree'' , toks''') = expression (toks'')                                     
+                                                         in ((SumNode Plus (SumNode op termTree term') tree''), toks''') 
                   TokCmp op' -> let (tree'',toks''') = expression (accept toks'')
                                  in ((CmpNode op' (SumNode op termTree term') tree'') , toks''')
                   TokLogicalBinary op' -> let (tree'',toks''') = expression (accept toks'')

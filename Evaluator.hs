@@ -62,6 +62,7 @@ evaluate parseTree symB symD =
         BoolNode x -> applyFunc logicEval
         VarNode x -> applyFunc arithEval
         AssignNode str valD -> applyFunc arithEval
+        UnaryNode op x -> applyFunc arithEval
 
 
 --helper function for compare
